@@ -25,16 +25,25 @@ const challenges = [
     }
 ];
 
+const levels = [
+    { name: "Bosque del Inicio", background: "/assets/fondo_camino.png" },
+    { name: "Montañas del Desafío", background: "/assets/fondo_bosque.png" },
+    { name: "Castillo del Honor", background: "/assets/fondo_castillo.png" },
+    { name: "Salón de los Héroes", background: "/assets/fondo_salon.png" }
+];
+
 export default function HeroicQuestApp() {
-    const [playerName, setPlayerName] = useState("");
+    const [player1, setPlayer1] = useState("");
+    const [player2, setPlayer2] = useState("");
     const [currentChallenge, setCurrentChallenge] = useState(0);
-    const [points, setPoints] = useState(0);
-    const [rewards, setRewards] = useState([]);
+    const [points, setPoints] = useState({ player1: 0, player2: 0 });
+    const [rewards, setRewards] = useState({ player1: [], player2: [] });
+    const [currentPlayer, setCurrentPlayer] = useState("player1");
     const [gameStarted, setGameStarted] = useState(false);
 
     const handleStartGame = () => {
-        if (playerName.trim() === "") {
-            alert("Por favor, ingresa tu nombre antes de comenzar.");
+        if (player1.trim() === "" || player2.trim() === "") {
+            alert("Ambos jugadores deben ingresar su nombre.");
             return;
         }
         setGameStarted(true);
@@ -42,25 +51,37 @@ export default function HeroicQuestApp() {
 
     const handleAnswer = (answer) => {
         const challenge = challenges[currentChallenge];
+        const current = currentPlayer;
 
         if (answer === challenge.correct) {
-            setPoints(points + challenge.points);
-            setRewards([...rewards, challenge.reward]);
+            setPoints({ ...points, [current]: points[current] + challenge.points });
+            setRewards({
+                ...rewards,
+                [current]: [...rewards[current], challenge.reward]
+            });
         }
 
-        if (currentChallenge < challenges.length - 1) {
-            setCurrentChallenge(currentChallenge + 1);
+        if (currentPlayer === "player1") {
+            setCurrentPlayer("player2");
         } else {
-            showFinalRanking();
+            if (currentChallenge < challenges.length - 1) {
+                setCurrentChallenge(currentChallenge + 1);
+                setCurrentPlayer("player1");
+            } else {
+                showFinalRanking();
+            }
         }
     };
 
     const showFinalRanking = () => {
-        const rank = points >= 40 ? "🏅 Caballero Legendario" : points >= 25 ? "⚔️ Guerrero Valiente" : "🛡️ Explorador Novato";
-        alert(`¡Ruta completada, ${playerName}!
-Puntaje: ${points} puntos
-Título obtenido: ${rank}
-Recompensas: ${rewards.join(", ")}
+        const rank = (points) => points >= 40 ? "🏅 Caballero Legendario" : points >= 25 ? "⚔️ Guerrero Valiente" : "🛡️ Explorador Novato";
+        alert(`¡Duelo Finalizado!
+
+${player1}: ${points.player1} puntos - ${rank(points.player1)}
+Recompensas: ${rewards.player1.join(", ")}
+
+${player2}: ${points.player2} puntos - ${rank(points.player2)}
+Recompensas: ${rewards.player2.join(", ")}
 
 Creado por: Iván Badilla Alfaro`);
     };
@@ -68,19 +89,25 @@ Creado por: Iván Badilla Alfaro`);
     if (!gameStarted) {
         return (
             <div className="flex flex-col items-center min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-6 space-y-4">
-                <h1 className="text-4xl font-bold">⚔️ Ruta Épica</h1>
+                <h1 className="text-4xl font-bold">⚔️ Ruta Épica - Duelo Épico</h1>
                 <p className="text-sm italic">Creado por Iván Badilla Alfaro</p>
                 <input
                     className="p-2 rounded-lg text-black"
-                    placeholder="Ingresa tu nombre"
-                    value={playerName}
-                    onChange={(e) => setPlayerName(e.target.value)}
+                    placeholder="Nombre Jugador 1"
+                    value={player1}
+                    onChange={(e) => setPlayer1(e.target.value)}
+                />
+                <input
+                    className="p-2 rounded-lg text-black"
+                    placeholder="Nombre Jugador 2"
+                    value={player2}
+                    onChange={(e) => setPlayer2(e.target.value)}
                 />
                 <button
                     className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg"
                     onClick={handleStartGame}
                 >
-                    Comenzar Aventura
+                    Comenzar Duelo
                 </button>
             </div>
         );
@@ -88,21 +115,23 @@ Creado por: Iván Badilla Alfaro`);
 
     return (
         <div className="flex flex-col items-center min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-6 space-y-4">
-            <motion.h1 
+            <motion.h1
                 className="text-4xl font-bold"
                 animate={{ scale: [1, 1.1, 1], rotate: [0, 2, -2, 0] }}
                 transition={{ duration: 1, repeat: Infinity }}
             >
-                ⚔️ Ruta Épica de {playerName}
+                ⚔️ Turno de: {currentPlayer === "player1" ? player1 : player2}
             </motion.h1>
 
-            <motion.div 
+            <motion.div
                 className="p-6 bg-gray-800 rounded-lg shadow-xl text-center space-y-4 w-full max-w-2xl"
                 initial={{ opacity: 0, y: -50 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
+                style={{ backgroundImage: `url(${levels[currentChallenge].background})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
             >
-                <h2 className="text-2xl font-semibold">{challenges[currentChallenge].question}</h2>
+                <h2 className="text-2xl font-semibold">{levels[currentChallenge].name}</h2>
+                <h3 className="text-xl font-medium">{challenges[currentChallenge].question}</h3>
 
                 <div className="flex flex-col space-y-2">
                     {challenges[currentChallenge].options.map((option) => (
@@ -117,21 +146,7 @@ Creado por: Iván Badilla Alfaro`);
                         </motion.button>
                     ))}
                 </div>
-
-                <motion.div 
-                    className="h-3 w-full bg-gray-600 rounded-full mt-4 overflow-hidden"
-                >
-                    <motion.div 
-                        className="h-full bg-green-500"
-                        initial={{ width: "0%" }}
-                        animate={{ width: `${((currentChallenge + 1) / challenges.length) * 100}%` }}
-                        transition={{ duration: 0.5 }}
-                    />
-                </motion.div>
-
-                <p className="mt-2 text-sm">Progreso: {currentChallenge + 1}/{challenges.length}</p>
-                <p className="mt-2 font-semibold">Puntos: {points}</p>
-
-                <ul className="text-left list-disc list-inside mt-4">
-                    {rewards.map((reward, index) => (
-                        <li key={index} className
+            </motion.div>
+        </div>
+    );
+}
