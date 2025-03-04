@@ -38,6 +38,18 @@ const avatars = {
     arquero: "🏹 Arquero"
 };
 
+const narratorPhrases = [
+    "¡Golpe crítico!", 
+    "¡Combo demoledor!", 
+    "¡Fatality educativo!", 
+    "¡Perfecto!", 
+    "¡Contraataque épico!", 
+    "¡KO histórico!", 
+    "¡El conocimiento es poder!", 
+    "¡Sir Iván destroza a su rival con sabiduría antigua!", 
+    "¡Ataque legendario directo al honor!"
+];
+
 export default function HeroicQuestApp() {
     const [player1, setPlayer1] = useState("");
     const [player2, setPlayer2] = useState("");
@@ -51,6 +63,7 @@ export default function HeroicQuestApp() {
     const [gameStarted, setGameStarted] = useState(false);
     const [timer, setTimer] = useState(15);
     const [shake, setShake] = useState({ player1: false, player2: false });
+    const [narratorMessage, setNarratorMessage] = useState("");
 
     useEffect(() => {
         if (gameStarted) {
@@ -88,10 +101,12 @@ export default function HeroicQuestApp() {
                 [current]: [...rewards[current], challenge.reward]
             });
             setHealth({ ...health, [opponent]: health[opponent] - 10 });
+            setNarratorMessage(narratorPhrases[Math.floor(Math.random() * narratorPhrases.length)]);
         } else {
             setHealth({ ...health, [current]: health[current] - 5 });
             setShake({ ...shake, [current]: true });
             setTimeout(() => setShake({ ...shake, [current]: false }), 500);
+            setNarratorMessage("¡Fallaste! El conocimiento es tu mejor arma.");
         }
 
         switchPlayerOrAdvance();
@@ -101,6 +116,7 @@ export default function HeroicQuestApp() {
         setHealth({ ...health, [currentPlayer]: health[currentPlayer] - 10 });
         setShake({ ...shake, [currentPlayer]: true });
         setTimeout(() => setShake({ ...shake, [currentPlayer]: false }), 500);
+        setNarratorMessage("¡Tiempo agotado! Piensa rápido, actúa fuerte.");
         switchPlayerOrAdvance();
     };
 
@@ -119,7 +135,7 @@ export default function HeroicQuestApp() {
     };
 
     return (
-        <div className="flex flex-col items-center h-screen w-screen bg-gradient-to-br from-gray-900 to-black text-white p-6 space-y-4">
+        <div className="flex flex-col justify-center items-center h-screen w-screen bg-gradient-to-br from-gray-900 to-black text-white p-4 space-y-4">
             <motion.h1 className="text-4xl font-bold">⚔️ Turno de: {avatars[currentPlayer === "player1" ? avatar1 : avatar2]} {currentPlayer === "player1" ? player1 : player2}</motion.h1>
             <motion.div animate={shake.player1 ? { x: [0, -5, 5, 0] } : {}} transition={{ duration: 0.2 }}>
                 <p className="text-lg">❤️ {avatars[avatar1]} {player1}: {health.player1} HP</p>
@@ -128,6 +144,7 @@ export default function HeroicQuestApp() {
                 <p className="text-lg">❤️ {avatars[avatar2]} {player2}: {health.player2} HP</p>
             </motion.div>
             <p className="text-lg">⏳ Tiempo restante: {timer}s</p>
+            <p className="text-yellow-400 text-lg font-bold">{narratorMessage}</p>
         </div>
     );
 }
