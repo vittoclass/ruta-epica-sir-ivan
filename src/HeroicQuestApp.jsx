@@ -16,10 +16,10 @@ const heroStages = [
 ];
 
 const heroImages = [
-  "https://i.imgur.com/TZyqxN8.png", // Novato sin armadura
-  "https://i.imgur.com/1P0t5vQ.png", // Explorador con casco
-  "https://i.imgur.com/4YKBDly.png", // Guerrero con armadura
-  "https://i.imgur.com/2ZgGj6Y.png"  // Leyenda musculoso y coronado
+  "/assets/sir_ivan_novato.png",
+  "/assets/sir_ivan_explorador.png",
+  "/assets/sir_ivan_guerrero.png",
+  "/assets/sir_ivan_leyenda.png"
 ];
 
 const weapons = [
@@ -93,7 +93,7 @@ export default function HeroicQuestApp() {
           <h2 className="text-2xl font-bold mb-2">{heroStages[currentChallenge]}</h2>
           <motion.img
             src={heroImages[currentChallenge]}
-            alt="Evolución de Sir Iván"
+            alt={`Evolución de Sir Iván - Etapa ${currentChallenge + 1}`}
             className="mx-auto my-4 rounded-lg border-4 border-yellow-500"
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
