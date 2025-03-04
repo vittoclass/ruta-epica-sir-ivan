@@ -3,23 +3,41 @@ import { QRCodeCanvas } from "qrcode.react";
 import { motion } from "framer-motion";
 
 const challenges = [
-  { id: 1, question: "¿Cómo el honor y la lealtad presentes en el Cantar de Mio Cid pueden reflejarse en la defensa de los derechos humanos hoy?", points: 10 },
-  { id: 2, question: "En la Odisea, Odiseo enfrenta sirenas que lo distraen. ¿Qué paralelo encuentras con las distracciones digitales actuales?", points: 10 },
-  { id: 3, question: "Explica cómo el contexto de la Guerra de Troya ayuda a entender conflictos actuales entre naciones.", points: 15 },
+  { 
+    id: 1, 
+    question: "¿Cómo el honor y la lealtad presentes en el Cantar de Mio Cid pueden reflejarse en la defensa de los derechos humanos hoy?", 
+    options: ["Protegiendo la dignidad de las personas", "Defendiendo solo lo propio", "Evitando conflictos"],
+    correct: "Protegiendo la dignidad de las personas",
+    points: 10 
+  },
+  { 
+    id: 2, 
+    question: "En la Odisea, Odiseo enfrenta sirenas que lo distraen. ¿Qué paralelo encuentras con las distracciones digitales actuales?", 
+    options: ["El exceso de notificaciones", "La falta de internet", "El uso de mapas físicos"],
+    correct: "El exceso de notificaciones",
+    points: 10 
+  },
+  { 
+    id: 3, 
+    question: "Explica cómo el contexto de la Guerra de Troya ayuda a entender conflictos actuales entre naciones.", 
+    options: ["Las alianzas y traiciones entre países", "La venta de productos en mercados", "La creación de festivales culturales"],
+    correct: "Las alianzas y traiciones entre países",
+    points: 15 
+  }
 ];
 
 const heroStages = [
   "Inicio del Viaje",
   "Navegando los Desafíos",
   "Enfrentando al Enemigo",
-  "Sir Iván Consagrado"
+  "Caballero Consagrado"
 ];
 
 const heroImages = [
-  "/assets/sir_ivan_novato.png",
-  "/assets/sir_ivan_explorador.png",
-  "/assets/sir_ivan_guerrero.png",
-  "/assets/sir_ivan_leyenda.png"
+  "/assets/novato.png",
+  "/assets/explorador.png",
+  "/assets/guerrero.png",
+  "/assets/leyenda.png"
 ];
 
 const weapons = [
@@ -46,18 +64,17 @@ export default function HeroicQuestApp() {
     setPoints(0);
   };
 
-  const handleNextChallenge = () => {
+  const handleAnswer = (answer) => {
+    if (answer === challenges[currentChallenge].correct) {
+      setPoints(points + challenges[currentChallenge].points);
+    }
+
     if (currentChallenge < challenges.length - 1) {
       setCurrentChallenge(currentChallenge + 1);
     } else {
       alert(`¡Felicidades, Sir Iván! Completaste la ruta épica con ${points} puntos.`);
       setIsPlaying(false);
     }
-  };
-
-  const handleEarnPoints = () => {
-    setPoints(points + challenges[currentChallenge].points);
-    handleNextChallenge();
   };
 
   return (
@@ -93,7 +110,7 @@ export default function HeroicQuestApp() {
           <h2 className="text-2xl font-bold mb-2">{heroStages[currentChallenge]}</h2>
           <motion.img
             src={heroImages[currentChallenge]}
-            alt={`Evolución de Sir Iván - Etapa ${currentChallenge + 1}`}
+            alt={`Evolución - Etapa ${currentChallenge + 1}`}
             className="mx-auto my-4 rounded-lg border-4 border-yellow-500"
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -101,30 +118,18 @@ export default function HeroicQuestApp() {
           />
           <p className="text-lg font-semibold">Arma obtenida: {weapons[currentChallenge]}</p>
 
-          <div className="relative w-full h-3 bg-gray-700 rounded-full overflow-hidden mt-4">
-            <motion.div
-              className="h-full bg-green-500"
-              initial={{ width: 0 }}
-              animate={{ width: `${(currentChallenge + 1) / challenges.length * 100}%` }}
-              transition={{ duration: 0.5 }}
-            />
-          </div>
-          <p className="text-xs mt-1">Progreso: {currentChallenge + 1}/{challenges.length}</p>
-
           <p className="mt-6 text-lg italic">{challenges[currentChallenge].question}</p>
-
-          <textarea
-            className="w-full mt-4 p-3 border rounded-lg bg-gray-800 text-white"
-            placeholder="Escribe tu reflexión aquí..."
-            rows={4}
-          ></textarea>
-
-          <button
-            className="mt-4 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg w-full"
-            onClick={handleEarnPoints}
-          >
-            Enviar y Continuar
-          </button>
+          <div className="flex flex-col space-y-2 mt-4">
+            {challenges[currentChallenge].options.map((option) => (
+              <button
+                key={option}
+                className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded"
+                onClick={() => handleAnswer(option)}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
 
           <p className="mt-4 font-bold">Puntos Totales: {points}</p>
         </motion.div>
