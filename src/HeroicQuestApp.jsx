@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 const challenges = [
@@ -32,14 +32,41 @@ const levels = [
     { name: "Salón de los Héroes", background: "/assets/fondo_salon.png" }
 ];
 
+const avatars = {
+    caballero: "🛡️ Caballero",
+    mago: "🧙‍♂️ Mago",
+    arquero: "🏹 Arquero"
+};
+
 export default function HeroicQuestApp() {
     const [player1, setPlayer1] = useState("");
     const [player2, setPlayer2] = useState("");
+    const [avatar1, setAvatar1] = useState("caballero");
+    const [avatar2, setAvatar2] = useState("caballero");
     const [currentChallenge, setCurrentChallenge] = useState(0);
     const [points, setPoints] = useState({ player1: 0, player2: 0 });
+    const [health, setHealth] = useState({ player1: 100, player2: 100 });
     const [rewards, setRewards] = useState({ player1: [], player2: [] });
     const [currentPlayer, setCurrentPlayer] = useState("player1");
     const [gameStarted, setGameStarted] = useState(false);
+    const [timer, setTimer] = useState(15);
+    const [shake, setShake] = useState({ player1: false, player2: false });
+
+    useEffect(() => {
+        if (gameStarted) {
+            const interval = setInterval(() => {
+                setTimer((prev) => {
+                    if (prev === 1) {
+                        handleTimeout();
+                        clearInterval(interval);
+                        return 15;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+            return () => clearInterval(interval);
+        }
+    }, [gameStarted, currentChallenge, currentPlayer]);
 
     const handleStartGame = () => {
         if (player1.trim() === "" || player2.trim() === "") {
@@ -52,6 +79,7 @@ export default function HeroicQuestApp() {
     const handleAnswer = (answer) => {
         const challenge = challenges[currentChallenge];
         const current = currentPlayer;
+        const opponent = current === "player1" ? "player2" : "player1";
 
         if (answer === challenge.correct) {
             setPoints({ ...points, [current]: points[current] + challenge.points });
@@ -59,8 +87,24 @@ export default function HeroicQuestApp() {
                 ...rewards,
                 [current]: [...rewards[current], challenge.reward]
             });
+            setHealth({ ...health, [opponent]: health[opponent] - 10 });
+        } else {
+            setHealth({ ...health, [current]: health[current] - 5 });
+            setShake({ ...shake, [current]: true });
+            setTimeout(() => setShake({ ...shake, [current]: false }), 500);
         }
 
+        switchPlayerOrAdvance();
+    };
+
+    const handleTimeout = () => {
+        setHealth({ ...health, [currentPlayer]: health[currentPlayer] - 10 });
+        setShake({ ...shake, [currentPlayer]: true });
+        setTimeout(() => setShake({ ...shake, [currentPlayer]: false }), 500);
+        switchPlayerOrAdvance();
+    };
+
+    const switchPlayerOrAdvance = () => {
         if (currentPlayer === "player1") {
             setCurrentPlayer("player2");
         } else {
@@ -71,82 +115,19 @@ export default function HeroicQuestApp() {
                 showFinalRanking();
             }
         }
+        setTimer(15);
     };
-
-    const showFinalRanking = () => {
-        const rank = (points) => points >= 40 ? "🏅 Caballero Legendario" : points >= 25 ? "⚔️ Guerrero Valiente" : "🛡️ Explorador Novato";
-        alert(`¡Duelo Finalizado!
-
-${player1}: ${points.player1} puntos - ${rank(points.player1)}
-Recompensas: ${rewards.player1.join(", ")}
-
-${player2}: ${points.player2} puntos - ${rank(points.player2)}
-Recompensas: ${rewards.player2.join(", ")}
-
-Creado por: Iván Badilla Alfaro`);
-    };
-
-    if (!gameStarted) {
-        return (
-            <div className="flex flex-col items-center min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-6 space-y-4">
-                <h1 className="text-4xl font-bold">⚔️ Ruta Épica - Duelo Épico</h1>
-                <p className="text-sm italic">Creado por Iván Badilla Alfaro</p>
-                <input
-                    className="p-2 rounded-lg text-black"
-                    placeholder="Nombre Jugador 1"
-                    value={player1}
-                    onChange={(e) => setPlayer1(e.target.value)}
-                />
-                <input
-                    className="p-2 rounded-lg text-black"
-                    placeholder="Nombre Jugador 2"
-                    value={player2}
-                    onChange={(e) => setPlayer2(e.target.value)}
-                />
-                <button
-                    className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg"
-                    onClick={handleStartGame}
-                >
-                    Comenzar Duelo
-                </button>
-            </div>
-        );
-    }
 
     return (
-        <div className="flex flex-col items-center min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-6 space-y-4">
-            <motion.h1
-                className="text-4xl font-bold"
-                animate={{ scale: [1, 1.1, 1], rotate: [0, 2, -2, 0] }}
-                transition={{ duration: 1, repeat: Infinity }}
-            >
-                ⚔️ Turno de: {currentPlayer === "player1" ? player1 : player2}
-            </motion.h1>
-
-            <motion.div
-                className="p-6 bg-gray-800 rounded-lg shadow-xl text-center space-y-4 w-full max-w-2xl"
-                initial={{ opacity: 0, y: -50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                style={{ backgroundImage: `url(${levels[currentChallenge].background})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-            >
-                <h2 className="text-2xl font-semibold">{levels[currentChallenge].name}</h2>
-                <h3 className="text-xl font-medium">{challenges[currentChallenge].question}</h3>
-
-                <div className="flex flex-col space-y-2">
-                    {challenges[currentChallenge].options.map((option) => (
-                        <motion.button
-                            key={option}
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => handleAnswer(option)}
-                        >
-                            {option}
-                        </motion.button>
-                    ))}
-                </div>
+        <div className="flex flex-col items-center h-screen w-screen bg-gradient-to-br from-gray-900 to-black text-white p-6 space-y-4">
+            <motion.h1 className="text-4xl font-bold">⚔️ Turno de: {avatars[currentPlayer === "player1" ? avatar1 : avatar2]} {currentPlayer === "player1" ? player1 : player2}</motion.h1>
+            <motion.div animate={shake.player1 ? { x: [0, -5, 5, 0] } : {}} transition={{ duration: 0.2 }}>
+                <p className="text-lg">❤️ {avatars[avatar1]} {player1}: {health.player1} HP</p>
             </motion.div>
+            <motion.div animate={shake.player2 ? { x: [0, -5, 5, 0] } : {}} transition={{ duration: 0.2 }}>
+                <p className="text-lg">❤️ {avatars[avatar2]} {player2}: {health.player2} HP</p>
+            </motion.div>
+            <p className="text-lg">⏳ Tiempo restante: {timer}s</p>
         </div>
     );
 }
